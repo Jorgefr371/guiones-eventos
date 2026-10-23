@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Generador de Eventos</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏍️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --bg:#0E1013; --surface:#171A20; --surface2:#1F232B; --line:#2C313B;
+  --ink:#F2F4F7; --muted:#9AA3B0;
+  --red:#E63329; --yellow:#FFD233; --green:#35C77F; --orange:#F2A33C;
+  --display:"Barlow Condensed",system-ui,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;overflow-x:hidden;max-width:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px 80px}
+
+header{padding:28px 0 18px;border-bottom:1px solid var(--line)}
+.brand{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(30px,6vw,46px);line-height:.95;margin:8px 0 6px;text-transform:uppercase}
+h1 em{font-style:normal;color:var(--red)}
+.sub{color:var(--muted);margin:0;max-width:62ch;font-size:14.5px}
+
+.grid{display:grid;grid-template-columns:340px minmax(0,1fr);gap:22px;margin-top:24px;align-items:start}
+@media(max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px}
+.panel h2{font-family:var(--display);font-size:20px;text-transform:uppercase;margin:0 0 14px;letter-spacing:.02em}
+@media(min-width:861px){.sticky{position:sticky;top:16px}}
+
+label{display:block;font-size:12.5px;color:var(--muted);margin:12px 0 5px;font-weight:500}
+input,select{width:100%;background:var(--surface2);border:1px solid var(--line);color:var(--ink);
+  border-radius:8px;padding:9px 11px;font-family:var(--body);font-size:14.5px}
+input:focus,select:focus{outline:2px solid var(--red);outline-offset:1px;border-color:transparent}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+
+.seg{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
+.seg button{flex:1;min-width:84px;background:var(--surface2);border:1px solid var(--line);color:var(--muted);
+  padding:8px 6px;border-radius:8px;font-family:var(--body);font-size:13.5px;cursor:pointer;font-weight:500}
+.seg button[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:#fff}
+
+.btn{width:100%;margin-top:18px;background:var(--red);border:0;color:#fff;font-family:var(--display);
+  font-size:19px;text-transform:uppercase;letter-spacing:.03em;padding:12px;border-radius:9px;cursor:pointer;font-weight:800}
+.btn:hover{filter:brightness(1.1)}
+
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:18px;flex-wrap:wrap}
+.tabs button{background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);
+  font-family:var(--display);font-size:17px;text-transform:uppercase;padding:9px 12px;cursor:pointer;letter-spacing:.02em}
+.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--red)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 17px;margin-bottom:14px}
+.card h3{font-family:var(--display);font-size:19px;text-transform:uppercase;margin:0 0 3px;letter-spacing:.02em}
+.card .why{color:var(--muted);font-size:13px;margin:0 0 12px}
+.tagrow{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:11px}
+.tag{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:999px;background:var(--surface2);color:var(--muted);border:1px solid var(--line)}
+.tag.good{color:var(--green);border-color:rgba(53,199,127,.35)}
+.tag.warn{color:var(--orange);border-color:rgba(242,163,60,.35)}
+.tag.bad{color:var(--red);border-color:rgba(230,51,41,.4)}
+
+.field{margin-bottom:10px}
+.field .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+pre.out{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:12px 13px;margin:0;
+  white-space:pre-wrap;word-wrap:break-word;overflow-wrap:anywhere;font-family:var(--body);font-size:14.5px;line-height:1.6}
+pre.one{padding:9px 12px;font-weight:600}
+
+.copybtn{margin-top:10px;background:var(--surface2);border:1px solid var(--line);color:var(--ink);
+  padding:7px 14px;border-radius:7px;cursor:pointer;font-size:13px;font-family:var(--body);font-weight:500}
+.copybtn:hover{border-color:var(--red)}
+.copybtn.ok{color:var(--green);border-color:rgba(53,199,127,.5)}
+
+.scrollx{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;min-width:520px;border-collapse:collapse;font-size:13.5px;margin-top:4px}
+th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--display);font-size:12.5px;text-transform:uppercase;color:var(--muted);letter-spacing:.04em;font-weight:700}
+td.t{font-family:var(--mono);font-size:12px;white-space:nowrap;color:var(--yellow)}
+td.sh{white-space:nowrap;font-weight:600}
+tr:last-child td{border-bottom:0}
+
+.drop{border:2px dashed var(--line);border-radius:12px;padding:30px 18px;text-align:center;cursor:pointer;background:var(--surface)}
+.drop:hover,.drop.over{border-color:var(--red);background:var(--surface2)}
+.drop p{margin:0;color:var(--muted);font-size:14px}
+.drop b{display:block;font-family:var(--display);font-size:20px;text-transform:uppercase;color:var(--ink);margin-bottom:5px}
+
+.check{display:flex;gap:11px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line)}
+.check:last-child{border-bottom:0}
+.dot{width:9px;height:9px;border-radius:50%;flex:0 0 9px;margin-top:7px}
+.dot.good{background:var(--green)}.dot.warn{background:var(--orange)}.dot.bad{background:var(--red)}.dot.na{background:var(--muted)}
+.check .ct{font-weight:600;font-size:14.5px}
+.check .cd{color:var(--muted);font-size:13px}
+
+.note{background:var(--surface2);border-left:3px solid var(--yellow);border-radius:0 8px 8px 0;padding:11px 13px;font-size:13.5px;color:var(--muted);margin-top:14px}
+.note b{color:var(--ink)}
+.alert{background:rgba(230,51,41,.1);border:1px solid rgba(230,51,41,.4);border-radius:9px;padding:11px 13px;font-size:13.5px;margin-bottom:14px}
+.alert b{color:var(--red)}
+.hidden{display:none}
+footer{margin-top:36px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="brand">Eventos Cristian · generador interno</div>
+  <h1>Guiones y copys <em>del próximo evento</em></h1>
+  <p class="sub">Todo lo que sale de aquí está armado con la estructura y los hooks que ya se midieron en las dos cuentas publicitarias. Llena los datos del evento y copia.</p>
+</header>
+
+<div class="grid">
+
+  <!-- ====== FORMULARIO ====== -->
+  <div class="panel sticky">
+    <h2>Datos del evento</h2>
+
+    <label>¿Qué se juega?</label>
+    <div class="seg" id="segTipo">
+      <button type="button" data-v="uno" aria-pressed="true">Un vehículo</button>
+      <button type="button" data-v="combo" aria-pressed="false">Combo de dos</button>
+    </div>
+
+    <label>Vehículo 1 — marca y modelo</label>
+    <input id="m1" placeholder="Yamaha NMAX" value="Yamaha NMAX">
+    <div class="row">
+      <div><label>Año</label><input id="a1" placeholder="2027" value="2027"></div>
+      <div><label>Color</label><input id="c1" placeholder="negra" value="negra"></div>
+    </div>
+
+    <div id="box2">
+      <label>Vehículo 2 — marca y modelo</label>
+      <input id="m2" placeholder="Yamaha Crypton Finn" value="Yamaha Crypton Finn">
+      <div class="row">
+        <div><label>Año</label><input id="a2" placeholder="2027" value="2027"></div>
+        <div><label>Color</label><input id="c2" placeholder="negra" value="negra"></div>
+      </div>
+    </div>
+
+    <label>Fecha del evento</label>
+    <input type="date" id="fecha">
+
+    <div class="row">
+      <div>
+        <label>Juega con</label>
+        <select id="lot">
+          <option value="la Boyacá" selected>la Boyacá</option>
+          <option value="la de Manizales">la de Manizales</option>
+          <option value="la del Valle">la del Valle</option>
+          <option value="la de Medellín">la de Medellín</option>
+          <option value="la de Bogotá">la de Bogotá</option>
+          <option value="la Cruz Roja">la Cruz Roja</option>
+        </select>
+      </div>
+      <div>
+        <label>Cifras</label>
+        <select id="cifras">
+          <option>2</option><option selected>3</option><option>4</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Firma del vendedor</label>
+    <input id="firma" value="Yo soy Cristian, el que sí cumple">
+
+    <button class="btn" id="go">Generar</button>
+    <div class="note" style="margin-top:14px">
+      <b>Ojo:</b> no escribas rifa, sorteo, lotería, premio ni apuesta en ningún campo. La página te avisa si se cuela alguna.
+    </div>
+  </div>
+
+  <!-- ====== RESULTADOS ====== -->
+  <div>
+    <div class="tabs" role="tablist">
+      <button role="tab" aria-selected="true" data-p="guiones">Guiones de video</button>
+      <button role="tab" aria-selected="false" data-p="copys">Copys para Meta</button>
+      <button role="tab" aria-selected="false" data-p="revisar">Revisar video o foto</button>
+    </div>
+
+    <div id="alerta"></div>
+    <div id="p-guiones"></div>
+    <div id="p-copys" class="hidden"></div>
+
+    <div id="p-revisar" class="hidden">
+      <div class="card">
+        <h3>Revisa el material antes de subirlo</h3>
+        <p class="why">Mide el archivo contra lo que ya se midió en las dos cuentas: duración, audio, formato y resolución. No se sube nada a ningún servidor, todo se lee en tu navegador.</p>
+        <div class="drop" id="drop">
+          <b>Suelta aquí el video o la foto</b>
+          <p>o haz clic para buscarlo</p>
+          <input type="file" id="file" accept="video/*,image/*" class="hidden">
+        </div>
+        <div id="media" class="hidden" style="margin-top:16px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Hecho con los datos de las cuentas Cristian Store y Cristian Ecommerce · los costos citados son el histórico medido, no una promesa.
+</footer>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const DIAS = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const PROHIBIDAS = ["rifa","rifas","rifar","sorteo","sorteos","sortear","loteria","lotería","premio","premios","apuesta","apuestas","azar","afortunado","suerte","ganar dinero","gana dinero"];
+
+let tipo = "uno";
+
+// fecha por defecto: próximo sábado
+(function(){
+  const d = new Date(); d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7 || 7));
+  $("#fecha").value = d.toISOString().slice(0,10);
+})();
+
+$("#segTipo").addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b) return;
+  tipo = b.dataset.v;
+  [...$("#segTipo").children].forEach(x => x.setAttribute("aria-pressed", x === b));
+  $("#box2").style.display = tipo === "combo" ? "" : "none";
+});
+$("#box2").style.display = "none";
+
+document.querySelector(".tabs").addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b) return;
+  document.querySelectorAll('[role=tab]').forEach(t => t.setAttribute("aria-selected", t === b));
+  ["guiones","copys","revisar"].forEach(p => $("#p-"+p).classList.toggle("hidden", p !== b.dataset.p));
+});
+
+function fechaLarga(v){
+  if(!v) return "el día del evento";
+  const [y,m,d] = v.split("-").map(Number);
+  const dt = new Date(y, m-1, d);
+  return DIAS[dt.getDay()] + " " + d + " de " + MESES[m-1];
+}
+
+function datos(){
+  const n1 = [$("#m1").value.trim(), $("#a1").value.trim()].filter(Boolean).join(" ");
+  const col1 = $("#c1").value.trim();
+  const n2 = [$("#m2").value.trim(), $("#a2").value.trim()].filter(Boolean).join(" ");
+  const col2 = $("#c2").value.trim();
+  const combo = tipo === "combo" && n2;
+  // quita solo la marca (primera palabra) y deja el modelo completo
+  const sinMarca = s => { const p = s.trim().split(/\s+/); return (p.length > 1 ? p.slice(1).join(" ") : p[0]) || ""; };
+  const corto1 = (sinMarca($("#m1").value) + " " + $("#a1").value.trim()).trim();
+  const corto2 = (sinMarca($("#m2").value) + " " + $("#a2").value.trim()).trim();
+  return {
+    combo,
+    n1, n2, col1, col2,
+    titulo: combo ? (corto1 + " + " + corto2) : (corto1),
+    full: combo
+      ? (n1 + (col1 ? " " + col1 : "") + " + " + n2 + (col2 ? " " + col2 : ""))
+      : (n1 + (col1 ? " " + col1 : "")),
+    plural: combo ? "las dos" : "la",
+    unidad: combo ? "dos vehículos 0KM" : "un vehículo 0KM",
+    fecha: fechaLarga($("#fecha").value),
+    lot: $("#lot").value,
+    cif: $("#cifras").value,
+    firma: $("#firma").value.trim()
+  };
+}
+
+function revisarPalabras(d){
+  const texto = [d.n1, d.n2, d.col1, d.col2, d.firma].join(" ").toLowerCase();
+  const hit = PROHIBIDAS.filter(p => texto.includes(p));
+  $("#alerta").innerHTML = hit.length
+    ? '<div class="alert"><b>Cuidado:</b> escribiste ' + hit.map(h=>'"'+h+'"').join(", ") +
+      '. Esas palabras son las que hacen que Meta tumbe el anuncio. Cámbialas por evento, números, cifras o resultados.</div>'
+    : "";
+}
+
+/* ============ GUIONES ============ */
+function bloquesGuion(d, segs){
+  // reparte la estructura ganadora sobre la duración elegida
+  const macro = segs >= 45 ? 11 : (segs >= 34 ? 6 : 3);
+  const b = [];
+  let t = 0;
+  const push = (dur, toma, camara, texto) => { b.push({ini:t, fin:t+dur, toma, camara, texto}); t += dur; };
+  push(macro, "Macro del vehículo", "Fija, trípode. Faro, rin, tanque o calcomanía", "Sin voz. Solo el vehículo y el rótulo en pantalla.");
+  push(3, "Plano completo de frente", "Travelling lento acercándose", "Entra Cristian por un lado del cuadro.");
+  push(5, "Cristian plano medio junto al vehículo", "A la altura del pecho", "Presenta " + (d.combo ? "el primero: " + d.n1 : d.full) + ", cero kilómetros.");
+  if(d.combo){
+    push(2, "Apoyo en diagonal", "Paneo corto de atrás hacia adelante", "Corte de apoyo mientras sigue hablando.");
+    push(4, "Cristian junto al segundo", "Misma altura, otro lado", "Presenta " + d.n2 + " y remata: es dos por uno, el que se lo lleva se lleva las dos.");
+  } else {
+    push(3, "Apoyo en diagonal", "Paneo corto", "Corte de apoyo: detalle del tablero o el escape.");
+  }
+  push(segs >= 45 ? 7 : 5, "Cristian plano medio-corto", "Más cerca, pecho y cara", "Juega el " + d.fecha + " con las " + d.cif + " últimas de " + d.lot + ". Son solo " + d.cif + " cifras, y entre más números tengas más opciones.");
+  push(4, "Cristian plano medio", "Contrapicada ligera", "Medios de pago y: me escribes acá abajo por WhatsApp.");
+  push(3, "Apoyo: Cristian tocando el vehículo", "Plano general", "Yo mismo te lo llevo hasta la puerta de tu casa, todo pago y matriculado.");
+  if(segs >= 45) push(6, "Vuelta completa alrededor", "Caminando alrededor del vehículo", "Sin voz o música. Aire para que se vea el producto.");
+  push(3, "Primer plano de Cristian", "Cara llenando el cuadro", d.firma + ". Escríbeme ya, que se están acabando.");
+  return b;
+}
+
+const HOOKS = [
+  { id:"producto", nom:"Producto directo", tag:"El control · $541 por conversación",
+    why:"Es el hook más barato medido en la cuenta: nombra el vehículo y el modelo desde el primer segundo.",
+    linea: d => "Bueno mi gente, el evento de esta semana: " + d.full + ", cero kilómetros, nueva de paquete." },
+  { id:"combo", nom:"Lo que se lleva", tag:"Para combos · diferencial propio",
+    why:"Pone por delante lo que nadie más ofrece. Funciona cuando hay dos vehículos en juego.",
+    linea: d => d.combo
+      ? "No es uno solo 👀 Son dos los que salen de aquí: " + d.n1 + " y " + d.n2 + ", los dos cero kilómetros."
+      : "Esto no es cualquier evento: " + d.full + " cero kilómetros, nueva de paquete, lista para estrenar." },
+  { id:"objecion", nom:"Antes de comprarle a cualquiera", tag:"Público frío · mata la desconfianza",
+    why:"Ataca la objeción de frente. Es el hook que mejor convierte en el conjunto de Colombia abierto.",
+    linea: d => "Antes de comprarle a cualquiera, mira esto: " + (d.combo ? "los dos son reales, están listos" : "es real, está lista") + " y " + (d.combo ? "los entrego" : "la entrego") + " yo mismo." },
+  { id:"cifras", nom:"Cansado de las muchas cifras", tag:"Para el quemado con otros eventos",
+    why:"Contrasta contra los eventos de 4, 5 y 6 cifras. Le habla al que ya participó en otros y nunca ganó.",
+    linea: d => "¿Cansado de los eventos de 4, 5 y 6 cifras donde nunca cae? Este es a " + d.cif + " cifras." }
+];
+
+function renderGuiones(d){
+  const dur = [28, 35, 50];
+  let html = '<div class="card"><h3>Cómo se graba</h3>'
+    + '<p class="why">Cuatro aperturas distintas sobre la misma estructura. Todas empiezan con el vehículo en pantalla, nunca con la persona: los cuatro videos más baratos de las dos cuentas abren así, y los tres más caros abren con Cristian de cuerpo entero.</p>'
+    + '<div class="tagrow"><span class="tag good">25-32 s: $702 por conversación</span><span class="tag good">más de 45 s: $728</span><span class="tag bad">menos de 20 s: $1.595 a $5.354</span></div>'
+    + '<div class="field"><div class="k">Rótulo fijo durante todo el video</div><pre class="out one">' + esc(d.titulo.toUpperCase())
+    + '\n' + esc(("juega el " + d.fecha).toUpperCase())
+    + '\n' + esc(("con las " + d.cif + " últimas de " + d.lot).toUpperCase()) + '</pre>'
+    + btn("Copiar rótulo") + '</div></div>';
+
+  HOOKS.forEach(h => {
+    html += '<div class="card"><h3>' + h.nom + '</h3><p class="why">' + h.why + '</p>'
+      + '<div class="tagrow"><span class="tag">' + h.tag + '</span></div>'
+      + '<div class="field"><div class="k">Primera línea que dice Cristian</div><pre class="out">' + esc(h.linea(d)) + '</pre>' + btn("Copiar línea") + '</div>'
+      + '<div class="field"><div class="k">Guión completo</div><pre class="out">' + esc(guionTexto(d, h)) + '</pre>' + btn("Copiar guión") + '</div>'
+      + '</div>';
+  });
+
+  html += '<div class="card"><h3>Plan de grabación segundo a segundo</h3>'
+    + '<p class="why">Elige la duración y graba en ese orden. Los tiempos son aproximados: lo importante es el orden de los planos y que el vehículo abra.</p>'
+    + '<div class="seg" id="segDur">' + dur.map((s,i) => '<button type="button" data-s="' + s + '" aria-pressed="' + (i===0) + '">' + s + ' segundos</button>').join("") + '</div>'
+    + '<div id="tabla"></div></div>';
+
+  $("#p-guiones").innerHTML = html;
+  pintarTabla(d, 28);
+  $("#segDur").addEventListener("click", e => {
+    const b = e.target.closest("button"); if(!b) return;
+    [...$("#segDur").children].forEach(x => x.setAttribute("aria-pressed", x === b));
+    pintarTabla(d, +b.dataset.s);
+  });
+}
+
+function pintarTabla(d, segs){
+  const b = bloquesGuion(d, segs);
+  const fin = b[b.length-1].fin;
+  $("#tabla").innerHTML = '<div class="scrollx"><table><thead><tr><th>Tiempo</th><th>Toma</th><th>Cámara</th><th>Qué pasa</th></tr></thead><tbody>'
+    + b.map(x => '<tr><td class="t">' + fmt(x.ini) + ' – ' + fmt(x.fin) + '</td><td class="sh">' + esc(x.toma) + '</td><td>' + esc(x.camara) + '</td><td>' + esc(x.texto) + '</td></tr>').join("")
+    + '</tbody></table></div>'
+    + '<div class="note">Total ' + fin + ' segundos. Rótulo fijo de principio a fin y subtítulos quemados en todo lo que hable: la mayoría del feed se ve en silencio.</div>';
+}
+const fmt = s => "0:" + String(Math.floor(s)).padStart(2,"0");
+
+function guionTexto(d, h){
+  const L = [];
+  L.push("[Macro del vehículo, sin voz]");
+  L.push("");
+  L.push(h.linea(d));
+  L.push("");
+  if(d.combo) L.push("Ya sabes: esto es dos por uno, el que se los lleva se lleva los dos.");
+  L.push("Juega el " + d.fecha + " con las " + d.cif + " últimas de " + d.lot + ". Son solo " + d.cif + " cifras, y entre más números tengas, más opciones tienes.");
+  L.push("");
+  L.push("¿Que por dónde pagas? Nequi, Bancolombia, Daviplata o Bre-B. Me escribes acá abajo por WhatsApp y te paso los números que quedan.");
+  L.push("");
+  L.push("Y yo mismo te " + (d.combo ? "los llevo" : "la llevo") + " hasta la puerta de tu casa, todo pago y " + (d.combo ? "matriculados" : "matriculada") + ".");
+  L.push("");
+  L.push("Recuerda: " + d.firma + ". Escríbeme ya, que se están acabando.");
+  return L.join("\n");
+}
+
+/* ============ COPYS ============ */
+function copys(d){
+  const C = [];
+  C.push({
+    nom:"Producto + mecánica", tag:"good", tagtxt:"El control · $541 por conversación",
+    why:"El más barato medido. Arranca con el producto, explica la mecánica y cierra con la garantía personal.",
+    tit:"Quiero mis números " + (d.combo ? "del combo 🏍️" : "🏍️"),
+    desc:(d.combo ? "Dos vehículos · " : "") + "Pago seguro",
+    body:"🏍️ " + d.full + ", cero kilómetros. " + (d.combo ? "Los dos salen de aquí el mismo día." : "Nueva de paquete, lista para estrenar.")
+      + "\n\nJuega el " + d.fecha + " con las " + d.cif + " últimas de " + d.lot + "."
+      + "\n\nCon " + d.cif + " cifras tienes opción real, y entre más números tengas, más opciones. Escríbeme y te paso los que quedan libres."
+      + "\n\n✅ " + d.firma + " 😎"
+  });
+  C.push({
+    nom: d.combo ? "El combo como diferencial" : "El producto como diferencial", tag:"", tagtxt:"Lo que nadie más ofrece",
+    why:"Pone por delante lo que te separa de la competencia. En combos es el ángulo más fuerte que tienes.",
+    tit: d.combo ? "No es uno, son dos 🔥" : d.titulo + " 0KM 🔥",
+    desc: d.titulo + " · " + d.fecha,
+    body:(d.combo
+      ? "No es uno solo 👀 Son dos los que salen de aquí el " + d.fecha + ": " + d.n1 + " y " + d.n2 + ", los dos cero kilómetros.\n\nCon las " + d.cif + " últimas de " + d.lot + ". Un solo número, los dos en juego."
+      : "Esto no es cualquier evento 👀 " + d.full + " cero kilómetros, nueva de paquete.\n\nJuega el " + d.fecha + " con las " + d.cif + " últimas de " + d.lot + ".")
+      + "\n\nEscríbeme y te digo cuáles quedan libres para que escojas los tuyos."
+      + "\n\n✅ " + d.firma + " 😎"
+  });
+  C.push({
+    nom:"Confianza · mata la objeción", tag:"", tagtxt:"Para público frío",
+    why:"El que no te conoce desconfía. Este copy se lo quita de encima antes de pedirle nada.",
+    tit:"Escríbeme y participa 💬",
+    desc:"Entrega inmediata · Te atiendo yo mismo",
+    body:"Antes de comprarle a cualquiera, mira esto: " + (d.combo ? "los dos son reales, están listos y los entrego" : "es real, está lista y la entrego") + " yo mismo 🏍️"
+      + "\n\n" + d.full + ", 0KM. " + (d.combo ? "Juegan" : "Juega") + " el " + d.fecha + " con las " + d.cif + " últimas de " + d.lot + "."
+      + "\n\nEscríbeme y te explico cómo funciona, sin compromiso. Si te convence, apartas tus números; si no, no pasa nada."
+      + "\n\n🔒 Pago seguro · 🏍️ Te " + (d.combo ? "los llevo" : "la llevo") + " hasta la puerta de tu casa"
+      + "\n✅ " + d.firma + " 😎"
+  });
+  C.push({
+    nom:"Mecánica simple", tag:"", tagtxt:"Para el quemado con otros eventos",
+    why:"Contrasta contra los eventos de muchas cifras. Le habla al que ya participó en otros y nunca ganó.",
+    tit:"Solo " + d.cif + " cifras, " + d.titulo + " 🔥",
+    desc:"+5.000 personas ya participaron",
+    body:"¿Cansado de los eventos de 4, 5 y 6 cifras donde nunca cae? 😤"
+      + "\n\nEste es a " + d.cif + " cifras con " + d.lot + " del " + d.fecha + ", y lo que está en juego " + (d.combo ? "son dos vehículos 0KM: " : "es ") + d.full + "."
+      + "\n\nVan quedando pocos números. Escríbeme y separas los tuyos en 1 minuto."
+      + "\n\n✅ " + d.firma + " 😎"
+  });
+  C.push({
+    nom:"Urgencia · solo los últimos 2 días", tag:"bad", tagtxt:"Como apertura cuesta $1.652 · como cierre funciona",
+    why:"Es el hook más caro medido cuando se usa para abrir. Guárdalo para el día antes y el día del evento.",
+    tit:"Últimos números · juega el " + d.fecha.split(" ")[0] + " 🚨",
+    desc:"Se cierra el " + d.fecha.split(" ").slice(1).join(" ") + " · Quedan pocos",
+    body:"🚨 Van quedando contados y el " + d.fecha.split(" ")[0] + " se cierra."
+      + "\n\n" + d.full + ", 0KM, con las " + d.cif + " últimas de " + d.lot + " el " + d.fecha + ". Cuando salga el resultado ya no hay vuelta atrás."
+      + "\n\nSi lo venías pensando, escríbeme ahora y lo cerramos en 2 minutos."
+      + "\n\n🔒 Pago seguro · Te atiendo yo mismo"
+      + "\n✅ " + d.firma + " 😎"
+  });
+  return C;
+}
+
+function renderCopys(d){
+  let html = '<div class="card"><h3>Cinco copys, un botón</h3>'
+    + '<p class="why">Reparte el 1 y el 2 entre los videos principales, el 3 y el 4 en los secundarios, y mete el 5 solo los últimos dos días. El botón de todos es <b>Enviar mensaje de WhatsApp</b>.</p>'
+    + '<div class="tagrow"><span class="tag good">Producto + mecánica: $541</span><span class="tag bad">Escasez como apertura: $1.652</span></div></div>';
+  copys(d).forEach((c,i) => {
+    html += '<div class="card"><h3>' + (i+1) + ' · ' + c.nom + '</h3><p class="why">' + c.why + '</p>'
+      + '<div class="tagrow"><span class="tag ' + c.tag + '">' + c.tagtxt + '</span></div>'
+      + '<div class="field"><div class="k">Titular</div><pre class="out one">' + esc(c.tit) + '</pre>' + btn("Copiar") + '</div>'
+      + '<div class="field"><div class="k">Descripción</div><pre class="out one">' + esc(c.desc) + '</pre>' + btn("Copiar") + '</div>'
+      + '<div class="field"><div class="k">Texto principal</div><pre class="out">' + esc(c.body) + '</pre>' + btn("Copiar texto") + '</div>'
+      + '</div>';
+  });
+  $("#p-copys").innerHTML = html;
+}
+
+/* ============ REVISOR DE MATERIAL ============ */
+const drop = $("#drop"), file = $("#file");
+drop.addEventListener("click", () => file.click());
+drop.addEventListener("dragover", e => { e.preventDefault(); drop.classList.add("over"); });
+drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+drop.addEventListener("drop", e => { e.preventDefault(); drop.classList.remove("over"); if(e.dataTransfer.files[0]) analizar(e.dataTransfer.files[0]); });
+file.addEventListener("change", e => { if(e.target.files[0]) analizar(e.target.files[0]); });
+
+function analizar(f){
+  const box = $("#media"); box.classList.remove("hidden");
+  const url = URL.createObjectURL(f);
+  const mb = (f.size/1048576).toFixed(1);
+  if(f.type.startsWith("image/")){
+    const img = new Image();
+    img.onload = () => pintarChecks(checksFoto(img, mb), f.name, mb);
+    img.src = url;
+    return;
+  }
+  const v = document.createElement("video");
+  v.preload = "auto"; v.muted = true; v.src = url;
+  v.onloadedmetadata = () => {
+    // intenta detectar audio: reproduce un instante en silencio
+    v.play().then(() => setTimeout(() => { v.pause(); pintarChecks(checksVideo(v, mb), f.name, mb); }, 420))
+            .catch(() => pintarChecks(checksVideo(v, mb), f.name, mb));
+  };
+  v.onerror = () => { box.innerHTML = '<div class="alert"><b>No pude leer el archivo.</b> Prueba con un MP4 o un JPG.</div>'; };
+}
+
+function tieneAudio(v){
+  if(typeof v.mozHasAudio === "boolean") return v.mozHasAudio;
+  if(typeof v.webkitAudioDecodedByteCount === "number") return v.webkitAudioDecodedByteCount > 0;
+  if(v.audioTracks && typeof v.audioTracks.length === "number") return v.audioTracks.length > 0;
+  return null;
+}
+
+function checksVideo(v, mb){
+  const s = v.duration, w = v.videoWidth, h = v.videoHeight, au = tieneAudio(v);
+  const out = [];
+  let dl, dt;
+  if(s < 20){ dl="bad"; dt="Por debajo de 20 segundos. En las dos cuentas este tramo costó entre $1.595 y $5.354 por conversación. Alárgalo con macros al inicio."; }
+  else if(s < 25){ dl="warn"; dt="Entre 20 y 25 segundos. Costó $738-$908. Funciona, pero 25-32 rinde mejor."; }
+  else if(s <= 35){ dl="good"; dt="En el punto dulce. Este tramo costó $702 por conversación y el mejor video de todos dura 25,5 segundos."; }
+  else if(s <= 45){ dl="warn"; dt="Entre 35 y 45 segundos. Costó $1.121. Sirve si hay qué mirar; si es Cristian hablando sin cortes, recórtalo."; }
+  else { dl="good"; dt="Más de 45 segundos. En la cuenta vieja este tramo fue el más barato de todos ($728), pero solo si hay planos que mirar."; }
+  out.push({l:dl, t:"Duración: " + s.toFixed(1) + " segundos", d:dt});
+
+  out.push(au === null
+    ? {l:"na", t:"Audio: no se pudo determinar", d:"Tu navegador no deja leerlo. Ábrelo y escúchalo: tres de los videos del combo anterior estaban completamente mudos."}
+    : au ? {l:"good", t:"Audio: sí tiene", d:"Bien. Un video mudo entrega peor en Reels y Stories."}
+         : {l:"bad", t:"Audio: está mudo", d:"Súbele música o la voz antes de montarlo. En la tanda anterior tres videos salieron así y casi no recibieron presupuesto."});
+
+  const r = w/h;
+  out.push(Math.abs(r - 9/16) < 0.03
+    ? {l:"good", t:"Formato: vertical 9:16 (" + w + "×" + h + ")", d:"Correcto para Reels, Stories y feed móvil."}
+    : {l:"warn", t:"Formato: " + w + "×" + h, d:"No es 9:16. Para Reels y Stories lo ideal es vertical 1080×1920."});
+
+  out.push(w > 1200
+    ? {l:"warn", t:"Resolución: " + w + " px de ancho · " + mb + " MB", d:"Meta lo reescala a 1080 de ancho igual. Exporta en 1080×1920 y la subida va mucho más rápida."}
+    : {l:"good", t:"Resolución: " + w + " px de ancho · " + mb + " MB", d:"Peso y tamaño adecuados para subir."});
+  return out;
+}
+
+function checksFoto(img, mb){
+  const w = img.naturalWidth, h = img.naturalHeight, r = w/h;
+  const out = [];
+  if(Math.abs(r - 4/5) < 0.03) out.push({l:"good", t:"Formato: 4:5 (" + w + "×" + h + ")", d:"El formato de feed que mejor ocupa pantalla en móvil."});
+  else if(Math.abs(r - 9/16) < 0.03) out.push({l:"good", t:"Formato: 9:16 (" + w + "×" + h + ")", d:"Correcto para Stories y Reels."});
+  else if(Math.abs(r - 1) < 0.03) out.push({l:"warn", t:"Formato: cuadrado (" + w + "×" + h + ")", d:"Funciona, pero 1080×1350 ocupa más pantalla en el feed."});
+  else out.push({l:"warn", t:"Formato: " + w + "×" + h, d:"Para feed usa 1080×1350; para Stories y Reels, 1080×1920."});
+  out.push(w >= 1080
+    ? {l:"good", t:"Resolución: " + w + " px de ancho · " + mb + " MB", d:"Suficiente para que no se vea pixelada."}
+    : {l:"bad", t:"Resolución: " + w + " px de ancho", d:"Se va a ver borrosa. Exporta mínimo 1080 de ancho."});
+  out.push({l:"na", t:"Recuerda el rótulo", d:"Modelo arriba, fecha y con qué juega abajo. Las imágenes del evento anterior rindieron a $539 con el CTR más alto de todos."});
+  return out;
+}
+
+function pintarChecks(list, nombre, mb){
+  $("#media").innerHTML = '<div class="field"><div class="k">' + esc(nombre) + ' · ' + mb + ' MB</div></div>'
+    + list.map(c => '<div class="check"><div class="dot ' + c.l + '"></div><div><div class="ct">' + esc(c.t) + '</div><div class="cd">' + esc(c.d) + '</div></div></div>').join("");
+}
+
+/* ============ UTIL ============ */
+function esc(s){ return String(s).replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m])); }
+function btn(txt){ return '<button class="copybtn" type="button">' + txt + '</button>'; }
+
+document.addEventListener("click", e => {
+  const b = e.target.closest(".copybtn"); if(!b) return;
+  const pre = b.previousElementSibling;
+  if(!pre || pre.tagName !== "PRE") return;
+  navigator.clipboard.writeText(pre.textContent).then(() => {
+    const o = b.textContent; b.textContent = "Copiado ✓"; b.classList.add("ok");
+    setTimeout(() => { b.textContent = o; b.classList.remove("ok"); }, 1400);
+  });
+});
+
+function generar(){
+  const d = datos();
+  revisarPalabras(d);
+  renderGuiones(d);
+  renderCopys(d);
+}
+$("#go").addEventListener("click", generar);
+generar();
+</script>
+</body>
+</html>
