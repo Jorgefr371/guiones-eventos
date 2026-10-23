@@ -6,8 +6,20 @@ Todo lo que genera sale de las plantillas que ya se midieron en las dos cuentas 
 
 ## Qué hace
 
-1. **Guiones de video** — cuatro aperturas distintas sobre la estructura ganadora, con el rótulo fijo
-   (modelo arriba, fecha y con qué juega abajo) y un plan de grabación segundo a segundo para 28, 35 o 50 segundos.
+1. **Guiones de video** — seis guiones completos y distintos entre sí (no son el mismo texto con otra
+   primera línea: cambia el argumento, el orden y el cierre). Todos respetan la estructura ganadora:
+   abren con el vehículo en pantalla, llevan el rótulo fijo (modelo arriba, fecha y con qué juega abajo)
+   y cierran con la garantía personal. Cada uno trae su propio plan de grabación segundo a segundo
+   para 28, 35 o 50 segundos.
+
+   | # | Guión | Para qué sirve |
+   |---|---|---|
+   | 1 | Producto directo | El control medido. Si solo grabas uno, graba este |
+   | 2 | Antes de comprarle a cualquiera | Público frío, mata la desconfianza |
+   | 3 | Cansado de las muchas cifras | El que ya participó en otros y nunca ganó |
+   | 4 | El que se lo lleva | Deseo, para quien ya quiere el producto |
+   | 5 | Las tres preguntas de siempre | Cortes secos, baja las conversaciones que se van en preguntas |
+   | 6 | Pregúntale al del mes pasado | Prueba social, respalda la firma con hechos |
 2. **Copys para Meta** — cinco variantes con titular, descripción y texto principal, listas para copiar.
 3. **Revisar video o foto** — se lee el archivo en el navegador (no se sube a ningún lado) y se compara
    con los números reales: duración, si tiene audio, relación de aspecto y resolución.
@@ -48,7 +60,8 @@ Son el histórico medido, no una promesa de resultado.
 
 Todo está en `index.html`. Para cambiar textos o números:
 
-- **Hooks de los guiones** → arreglo `HOOKS`
+- **Guiones y sus tomas** → arreglo `GUIONES` (cada uno con sus `beats`)
+- **Concordancia de género y número** → objeto `g` dentro de `datos()`
 - **Copys de Meta** → función `copys(d)`
 - **Umbrales del revisor de video** → función `checksVideo(v, mb)`
 - **Palabras que disparan la alerta** → arreglo `PROHIBIDAS`

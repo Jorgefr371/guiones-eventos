@@ -125,6 +125,12 @@ footer{margin-top:36px;padding-top:18px;border-top:1px solid var(--line);color:v
       <button type="button" data-v="combo" aria-pressed="false">Combo de dos</button>
     </div>
 
+    <label>¿Moto o carro?</label>
+    <div class="seg" id="segClase">
+      <button type="button" data-c="moto" aria-pressed="true">Moto</button>
+      <button type="button" data-c="carro" aria-pressed="false">Carro</button>
+    </div>
+
     <label>Vehículo 1 — marca y modelo</label>
     <input id="m1" placeholder="Yamaha NMAX" value="Yamaha NMAX">
     <div class="row">
@@ -212,6 +218,7 @@ const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto"
 const PROHIBIDAS = ["rifa","rifas","rifar","sorteo","sorteos","sortear","loteria","lotería","premio","premios","apuesta","apuestas","azar","afortunado","suerte","ganar dinero","gana dinero"];
 
 let tipo = "uno";
+let clase = "moto";
 
 // fecha por defecto: próximo sábado
 (function(){
@@ -226,6 +233,12 @@ $("#segTipo").addEventListener("click", e => {
   $("#box2").style.display = tipo === "combo" ? "" : "none";
 });
 $("#box2").style.display = "none";
+
+$("#segClase").addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b) return;
+  clase = b.dataset.c;
+  [...$("#segClase").children].forEach(x => x.setAttribute("aria-pressed", x === b));
+});
 
 document.querySelector(".tabs").addEventListener("click", e => {
   const b = e.target.closest("button"); if(!b) return;
@@ -250,16 +263,34 @@ function datos(){
   const sinMarca = s => { const p = s.trim().split(/\s+/); return (p.length > 1 ? p.slice(1).join(" ") : p[0]) || ""; };
   const corto1 = (sinMarca($("#m1").value) + " " + $("#a1").value.trim()).trim();
   const corto2 = (sinMarca($("#m2").value) + " " + $("#a2").value.trim()).trim();
+  const moto = clase === "moto";
+  // concordancia de género y número para que el texto suene natural
+  const g = {
+    sust:    combo ? (moto ? "las dos motos" : "los dos carros") : (moto ? "la moto" : "el carro"),
+    sustS:   moto ? "moto" : "carro",
+    art:     combo ? (moto ? "las" : "los") : (moto ? "la" : "el"),
+    laEnt:   combo ? (moto ? "las entrego" : "los entrego") : (moto ? "la entrego" : "lo entrego"),
+    teLlevo: combo ? (moto ? "te las llevo" : "te los llevo") : (moto ? "te la llevo" : "te lo llevo"),
+    matric:  combo ? (moto ? "matriculadas" : "matriculados") : (moto ? "matriculada" : "matriculado"),
+    esReal:  combo ? "son reales" : "es real",
+    estaLista: combo ? (moto ? "están listas" : "están listos") : (moto ? "está lista" : "está listo"),
+    esta:    combo ? "están" : "está",
+    juega:   combo ? "juegan" : "juega",
+    salen:   combo ? "salen" : "sale",
+    ref:     combo ? (moto ? "las dos" : "los dos") : (moto ? "la " + corto1 : "el " + corto1),
+    term:    combo ? (moto ? "as" : "os") : (moto ? "a" : "o"),
+    pron:    combo ? (moto ? "las" : "los") : (moto ? "la" : "lo"),
+    cero:    "cero kilómetros" + (combo ? (moto ? " las dos" : " los dos") : "")
+  };
   return {
-    combo,
-    n1, n2, col1, col2,
+    combo, moto, corto1, corto2,
+    n1, n2, col1, col2, ...g,
     titulo: combo ? (corto1 + " + " + corto2) : (corto1),
     full: combo
       ? (n1 + (col1 ? " " + col1 : "") + " + " + n2 + (col2 ? " " + col2 : ""))
       : (n1 + (col1 ? " " + col1 : "")),
-    plural: combo ? "las dos" : "la",
-    unidad: combo ? "dos vehículos 0KM" : "un vehículo 0KM",
     fecha: fechaLarga($("#fecha").value),
+    dia: fechaLarga($("#fecha").value).split(" ")[0],
     lot: $("#lot").value,
     cif: $("#cifras").value,
     firma: $("#firma").value.trim()
@@ -276,104 +307,197 @@ function revisarPalabras(d){
 }
 
 /* ============ GUIONES ============ */
-function bloquesGuion(d, segs){
-  // reparte la estructura ganadora sobre la duración elegida
-  const macro = segs >= 45 ? 11 : (segs >= 34 ? 6 : 3);
-  const b = [];
-  let t = 0;
-  const push = (dur, toma, camara, texto) => { b.push({ini:t, fin:t+dur, toma, camara, texto}); t += dur; };
-  push(macro, "Macro del vehículo", "Fija, trípode. Faro, rin, tanque o calcomanía", "Sin voz. Solo el vehículo y el rótulo en pantalla.");
-  push(3, "Plano completo de frente", "Travelling lento acercándose", "Entra Cristian por un lado del cuadro.");
-  push(5, "Cristian plano medio junto al vehículo", "A la altura del pecho", "Presenta " + (d.combo ? "el primero: " + d.n1 : d.full) + ", cero kilómetros.");
-  if(d.combo){
-    push(2, "Apoyo en diagonal", "Paneo corto de atrás hacia adelante", "Corte de apoyo mientras sigue hablando.");
-    push(4, "Cristian junto al segundo", "Misma altura, otro lado", "Presenta " + d.n2 + " y remata: es dos por uno, el que se lo lleva se lleva las dos.");
-  } else {
-    push(3, "Apoyo en diagonal", "Paneo corto", "Corte de apoyo: detalle del tablero o el escape.");
-  }
-  push(segs >= 45 ? 7 : 5, "Cristian plano medio-corto", "Más cerca, pecho y cara", "Juega el " + d.fecha + " con las " + d.cif + " últimas de " + d.lot + ". Son solo " + d.cif + " cifras, y entre más números tengas más opciones.");
-  push(4, "Cristian plano medio", "Contrapicada ligera", "Medios de pago y: me escribes acá abajo por WhatsApp.");
-  push(3, "Apoyo: Cristian tocando el vehículo", "Plano general", "Yo mismo te lo llevo hasta la puerta de tu casa, todo pago y matriculado.");
-  if(segs >= 45) push(6, "Vuelta completa alrededor", "Caminando alrededor del vehículo", "Sin voz o música. Aire para que se vea el producto.");
-  push(3, "Primer plano de Cristian", "Cara llenando el cuadro", d.firma + ". Escríbeme ya, que se están acabando.");
-  return b;
-}
+/* Cada guión tiene sus propios "beats". El primero siempre es el macro sin voz
+   (la apertura que separa los videos baratos de los caros). El resto cambia
+   de verdad: otro argumento, otro orden, otro cierre. */
 
-const HOOKS = [
-  { id:"producto", nom:"Producto directo", tag:"El control · $541 por conversación",
-    why:"Es el hook más barato medido en la cuenta: nombra el vehículo y el modelo desde el primer segundo.",
-    linea: d => "Bueno mi gente, el evento de esta semana: " + d.full + ", cero kilómetros, nueva de paquete." },
-  { id:"combo", nom:"Lo que se lleva", tag:"Para combos · diferencial propio",
-    why:"Pone por delante lo que nadie más ofrece. Funciona cuando hay dos vehículos en juego.",
-    linea: d => d.combo
-      ? "No es uno solo 👀 Son dos los que salen de aquí: " + d.n1 + " y " + d.n2 + ", los dos cero kilómetros."
-      : "Esto no es cualquier evento: " + d.full + " cero kilómetros, nueva de paquete, lista para estrenar." },
-  { id:"objecion", nom:"Antes de comprarle a cualquiera", tag:"Público frío · mata la desconfianza",
-    why:"Ataca la objeción de frente. Es el hook que mejor convierte en el conjunto de Colombia abierto.",
-    linea: d => "Antes de comprarle a cualquiera, mira esto: " + (d.combo ? "los dos son reales, están listos" : "es real, está lista") + " y " + (d.combo ? "los entrego" : "la entrego") + " yo mismo." },
-  { id:"cifras", nom:"Cansado de las muchas cifras", tag:"Para el quemado con otros eventos",
-    why:"Contrasta contra los eventos de 4, 5 y 6 cifras. Le habla al que ya participó en otros y nunca ganó.",
-    linea: d => "¿Cansado de los eventos de 4, 5 y 6 cifras donde nunca cae? Este es a " + d.cif + " cifras." }
+const GUIONES = [
+  {
+    id:"producto", nom:"Producto directo", tag:"El control · $541 por conversación",
+    why:"El que ya está medido. Presenta, explica la mecánica y cierra con la garantía. Si solo vas a grabar uno, graba este.",
+    beats: d => [
+      {visual:"Macro del faro o " + (d.moto ? "el tanque" : "el capó"), camara:"Fija, trípode. Sin movimiento", dice:""},
+      {visual:"Plano completo de frente", camara:"Travelling lento acercándose", peso:1.2,
+       dice:"Bueno mi gente, el evento de esta semana: " + d.full + ", " + d.cero + ", nuevecit" + d.term + " de paquete."},
+      {visual:"Apoyo: tablero y escape", camara:"Paneo corto de atrás hacia adelante", peso:.9,
+       dice:"Míra" + d.pron + " bien, " + d.esta + " aquí atrás mío, sin un rayón."},
+      {visual:"Cristian plano medio junto al vehículo", camara:"A la altura del pecho", peso:1.3,
+       dice:d.juega.charAt(0).toUpperCase()+d.juega.slice(1) + " el " + d.fecha + " con las " + d.cif + " últimas de " + d.lot + "."},
+      {visual:"Cristian plano medio-corto", camara:"Más cerca, pecho y cara", peso:1.2,
+       dice:"Son solo " + d.cif + " cifras. Entre más números tengas, más opciones tienes."},
+      {visual:"Cristian contrapicada ligera", camara:"Desde abajo, poderoso", peso:1.1,
+       dice:"Nequi, Bancolombia, Daviplata o Bre-B. Me escribes acá abajo y te paso los que quedan libres."},
+      {visual:"Apoyo: Cristian tocando el vehículo", camara:"Plano general", peso:1,
+       dice:"Y yo mismo " + d.teLlevo + " hasta la puerta de tu casa, todo pago y " + d.matric + "."},
+      {visual:"Primer plano de Cristian", camara:"Cara llenando el cuadro", peso:.9,
+       dice:d.firma + ". Escríbeme ya, que se están acabando."}
+    ]
+  },
+  {
+    id:"desconfianza", nom:"Antes de comprarle a cualquiera", tag:"Para público frío · mata la objeción",
+    why:"No vende el producto, vende que existe. Es el que mejor funciona en el conjunto de Colombia abierto, donde la gente no te conoce.",
+    beats: d => [
+      {visual:"Macro de la llave y los papeles sobre el asiento", camara:"Fija, cenital", dice:""},
+      {visual:"Cristian entra al cuadro junto al vehículo", camara:"Plano medio, él mirando a cámara", peso:1.2,
+       dice:"Antes de comprarle a cualquiera, párate aquí dos segundos."},
+      {visual:"Vuelta completa alrededor del vehículo", camara:"Caminando, cámara al hombro", peso:1.4,
+       dice:"Esto no es una foto de internet. " + d.esta.charAt(0).toUpperCase()+d.esta.slice(1) + " aquí, " + d.pron + " estás viendo, y " + d.laEnt + " yo mismo."},
+      {visual:"Cristian sentado en el vehículo", camara:"Plano medio desde el lado", peso:1.1,
+       dice:d.full + ", " + d.cero + ". Ni usad" + d.term + ", ni de segunda."},
+      {visual:"Cristian plano medio", camara:"A la altura de los ojos", peso:1.2,
+       dice:d.juega.charAt(0).toUpperCase()+d.juega.slice(1) + " el " + d.fecha + " con las " + d.cif + " últimas de " + d.lot + ". " + d.cif + " cifras, nada raro, nada escondido."},
+      {visual:"Cristian abriendo las manos", camara:"Plano medio-corto", peso:1.2,
+       dice:"Escríbeme y te explico cómo funciona, sin compromiso. Si te convence, apartas tus números; si no, no pasa nada."},
+      {visual:"Apoyo: el vehículo listo para salir", camara:"Plano general", peso:1,
+       dice:"Y el día que salga, " + d.teLlevo + " hasta la puerta de tu casa, todo pago y " + d.matric + "."},
+      {visual:"Primer plano de Cristian", camara:"Cara llenando el cuadro", peso:.8,
+       dice:d.firma + "."}
+    ]
+  },
+  {
+    id:"cifras", nom:"Cansado de las muchas cifras", tag:"Para el que ya participó en otros y nunca ganó",
+    why:"No habla del producto, habla de la matemática. Le pega al que está quemado con los eventos de 4, 5 y 6 cifras.",
+    beats: d => [
+      {visual:"Macro del rin", camara:"Fija, giro mínimo de la rueda", dice:""},
+      {visual:"Cristian primer plano", camara:"Cara llenando el cuadro, directo", peso:1.3,
+       dice:"¿Cansado de los eventos de 4, 5 y 6 cifras donde nunca cae?"},
+      {visual:"Corte seco al vehículo completo", camara:"Fija, plano general", peso:1,
+       dice:"Mira: aquí es a " + d.cif + " cifras. Nada más."},
+      {visual:"Cristian caminando hacia cámara", camara:"Travelling de retroceso", peso:1.3,
+       dice:"Las " + d.cif + " últimas de " + d.lot + " del " + d.fecha + ", y lo que " + "está en juego " + (d.combo ? "son " + d.full : "es " + d.art + " " + d.full) + ", " + d.cero + "."},
+      {visual:"Cristian plano medio, contando con los dedos", camara:"A la altura del pecho", peso:1.2,
+       dice:"Con " + d.cif + " cifras tienes opción real. Con seis, estás rezando."},
+      {visual:"Apoyo: detalle del vehículo", camara:"Macro lento", peso:.9,
+       dice:"Pago seguro: Nequi, Bancolombia, Daviplata o Bre-B."},
+      {visual:"Cristian contrapicada", camara:"Desde abajo", peso:1.1,
+       dice:"Escríbeme y te paso los números que quedan libres, que se están acabando."},
+      {visual:"Primer plano de Cristian", camara:"Cara llenando el cuadro", peso:.8,
+       dice:d.firma + "."}
+    ]
+  },
+  {
+    id:"proyeccion", nom:"El que se lo lleva", tag:"Deseo · para quien ya quiere el producto",
+    why:"Pone al espectador dentro de la escena: no habla del evento, habla del lunes siguiente. Funciona bien en Reels.",
+    beats: d => [
+      {visual:"Macro del asiento y " + (d.moto ? "el manubrio" : "el volante"), camara:"Fija, luz de tarde", dice:""},
+      {visual:"Paneo lento de atrás hacia adelante", camara:"Deslizador o travelling suave", peso:1.3,
+       dice:"Esto no se queda en el video. El " + d.fecha + ", " + d.ref + " " + d.salen + " de aquí para la casa de alguien."},
+      {visual:"Cristian apoyado en el vehículo", camara:"Plano medio, relajado", peso:1.2,
+       dice:d.full + ", " + d.cero + ". Imagínate estrenándo" + (d.combo ? (d.moto?"las":"los") : (d.moto?"la":"lo")) + " el fin de semana."},
+      {visual:"Cristian girando la llave", camara:"Primer plano de la mano", peso:1,
+       dice:"Con las " + d.cif + " últimas de " + d.lot + ". " + d.cif + " cifras, escoges tus números y listo."},
+      {visual:"Cristian plano medio", camara:"A la altura de los ojos", peso:1.2,
+       dice:"No tienes que venir hasta acá: yo mismo " + d.teLlevo + " hasta la puerta de tu casa, todo pago y " + d.matric + "."},
+      {visual:"Apoyo: el vehículo saliendo del cuadro", camara:"Plano general, él empujándola", peso:1,
+       dice:"Tú solo " + (d.combo ? "las enciendes" : (d.moto?"la enciendes":"lo enciendes")) + "."},
+      {visual:"Primer plano de Cristian", camara:"Cara llenando el cuadro", peso:1,
+       dice:"Escríbeme y miramos cuáles quedan. " + d.firma + "."}
+    ]
+  },
+  {
+    id:"faq", nom:"Las tres preguntas de siempre", tag:"Estructura de cortes secos · muy distinto al resto",
+    why:"Responde en 20 segundos lo que la gente pregunta por chat. Baja las conversaciones que se van en preguntas y no dejan venta.",
+    beats: d => [
+      {visual:"Macro del logo o la calcomanía", camara:"Fija", dice:""},
+      {visual:"Cristian primer plano", camara:"Cara llenando el cuadro", peso:1,
+       dice:"Tres preguntas que me hacen todos los días. Rápido."},
+      {visual:"Corte seco · Cristian encuadre izquierda", camara:"Plano medio, él a un lado", peso:1.2,
+       dice:"Uno: ¿cuándo " + d.juega + "? El " + d.fecha + ", con las " + d.cif + " últimas de " + d.lot + "."},
+      {visual:"Corte seco · Cristian encuadre derecha", camara:"Plano medio, él al otro lado", peso:1.2,
+       dice:"Dos: ¿por dónde pago? Nequi, Bancolombia, Daviplata o Bre-B. Como te quede mejor."},
+      {visual:"Corte seco · Cristian de frente", camara:"Plano medio-corto", peso:1.3,
+       dice:"Tres: ¿y si no vivo en la ciudad? Yo mismo " + d.teLlevo + " hasta la puerta de tu casa, todo pago y " + d.matric + "."},
+      {visual:"Plano completo del vehículo", camara:"Fija, el producto solo", peso:1.1,
+       dice:d.full + ", " + d.cero + ". Son " + d.cif + " cifras."},
+      {visual:"Primer plano de Cristian", camara:"Cara llenando el cuadro", peso:1,
+       dice:"¿Alguna otra? Escríbeme acá abajo. " + d.firma + "."}
+    ]
+  },
+  {
+    id:"prueba", nom:"Pregúntale al del mes pasado", tag:"Prueba social · apoya la firma con hechos",
+    why:"La firma dice 'el que sí cumple'. Este guión la respalda en vez de solo repetirla. Si tienes video de una entrega anterior, va aquí.",
+    beats: d => [
+      {visual:"Macro del vehículo nuevo", camara:"Fija", dice:""},
+      {visual:"Cristian junto al vehículo", camara:"Plano medio", peso:1.2,
+       dice:"Mira, yo no te voy a decir que me creas."},
+      {visual:"Material de archivo: entrega anterior", camara:"Si no tienes, plano general del jardín", peso:1.3,
+       dice:"Te voy a decir que preguntes. Pregúntale al que se llevó " + (d.moto ? "la del mes pasado" : "el del mes pasado") + ", que se " + (d.moto?"la":"lo") + " dejé en la puerta de la casa."},
+      {visual:"Corte al vehículo de esta semana", camara:"Plano general", peso:1.1,
+       dice:"Esta semana " + (d.combo ? "son " + d.full : "es " + d.art + " " + d.full) + ", " + d.cero + "."},
+      {visual:"Cristian plano medio", camara:"A la altura de los ojos", peso:1.2,
+       dice:"El " + d.fecha + " con las " + d.cif + " últimas de " + d.lot + ". " + d.cif + " cifras, como siempre."},
+      {visual:"Cristian señalando abajo", camara:"Plano medio-corto", peso:1.2,
+       dice:d.laEnt.charAt(0).toUpperCase()+d.laEnt.slice(1) + " yo mismo, todo pago y " + d.matric + ". Igual que todas las anteriores."},
+      {visual:"Primer plano de Cristian", camara:"Cara llenando el cuadro", peso:1,
+       dice:"Escríbeme y separa los tuyos. " + d.firma + "."}
+    ]
+  }
 ];
 
+/* reparte los beats sobre la duración elegida */
+function plan(g, d, segs){
+  const beats = g.beats(d);
+  const macro = segs >= 45 ? 11 : (segs >= 34 ? 6 : 3);
+  const resto = beats.slice(1);
+  const suma = resto.reduce((a,b) => a + (b.peso || 1), 0);
+  const disp = segs - macro;
+  const out = [{ini:0, fin:macro, ...beats[0]}];
+  let t = macro;
+  resto.forEach((b,i) => {
+    let dur = i === resto.length - 1 ? (segs - t) : Math.max(2, Math.round(disp * (b.peso || 1) / suma));
+    out.push({ini:t, fin:t + dur, ...b});
+    t += dur;
+  });
+  return out;
+}
+
+function guionTexto(g, d){
+  return "[" + g.beats(d)[0].visual + " · sin voz, solo el rótulo]\n\n"
+    + g.beats(d).slice(1).filter(b => b.dice).map(b => b.dice).join("\n\n");
+}
+
 function renderGuiones(d){
-  const dur = [28, 35, 50];
-  let html = '<div class="card"><h3>Cómo se graba</h3>'
-    + '<p class="why">Cuatro aperturas distintas sobre la misma estructura. Todas empiezan con el vehículo en pantalla, nunca con la persona: los cuatro videos más baratos de las dos cuentas abren así, y los tres más caros abren con Cristian de cuerpo entero.</p>'
+  let html = '<div class="card"><h3>La regla que no se toca</h3>'
+    + '<p class="why">Los seis guiones abren con el vehículo en pantalla y nunca con la persona: los cuatro videos más baratos de las dos cuentas abren así, y los tres más caros abren con Cristian de cuerpo entero. De ahí en adelante cada guión cuenta algo distinto.</p>'
     + '<div class="tagrow"><span class="tag good">25-32 s: $702 por conversación</span><span class="tag good">más de 45 s: $728</span><span class="tag bad">menos de 20 s: $1.595 a $5.354</span></div>'
-    + '<div class="field"><div class="k">Rótulo fijo durante todo el video</div><pre class="out one">' + esc(d.titulo.toUpperCase())
+    + '<div class="field"><div class="k">Rótulo fijo durante todo el video, en los seis</div><pre class="out one">' + esc(d.titulo.toUpperCase())
     + '\n' + esc(("juega el " + d.fecha).toUpperCase())
     + '\n' + esc(("con las " + d.cif + " últimas de " + d.lot).toUpperCase()) + '</pre>'
-    + btn("Copiar rótulo") + '</div></div>';
+    + btn("Copiar rótulo") + '</div>'
+    + '<div class="note">Elige la duración y los planes de abajo se recalculan. En la de 50 segundos el macro de apertura pasa de 3 a 11 segundos: lo largo rinde cuando hay qué mirar, no cuando se habla más despacio.</div>'
+    + '<div class="seg" id="segDur" style="margin-top:12px">'
+    + [28,35,50].map((s,i) => '<button type="button" data-s="' + s + '" aria-pressed="' + (i===0) + '">' + s + ' segundos</button>').join("")
+    + '</div></div>';
 
-  HOOKS.forEach(h => {
-    html += '<div class="card"><h3>' + h.nom + '</h3><p class="why">' + h.why + '</p>'
-      + '<div class="tagrow"><span class="tag">' + h.tag + '</span></div>'
-      + '<div class="field"><div class="k">Primera línea que dice Cristian</div><pre class="out">' + esc(h.linea(d)) + '</pre>' + btn("Copiar línea") + '</div>'
-      + '<div class="field"><div class="k">Guión completo</div><pre class="out">' + esc(guionTexto(d, h)) + '</pre>' + btn("Copiar guión") + '</div>'
+  GUIONES.forEach((g,i) => {
+    html += '<div class="card"><h3>' + (i+1) + ' · ' + g.nom + '</h3><p class="why">' + g.why + '</p>'
+      + '<div class="tagrow"><span class="tag">' + g.tag + '</span></div>'
+      + '<div class="field"><div class="k">Lo que dice Cristian</div><pre class="out">' + esc(guionTexto(g, d)) + '</pre>' + btn("Copiar guión") + '</div>'
+      + '<div class="field"><div class="k">Plan de grabación</div><div class="tabla" data-g="' + g.id + '"></div></div>'
       + '</div>';
   });
 
-  html += '<div class="card"><h3>Plan de grabación segundo a segundo</h3>'
-    + '<p class="why">Elige la duración y graba en ese orden. Los tiempos son aproximados: lo importante es el orden de los planos y que el vehículo abra.</p>'
-    + '<div class="seg" id="segDur">' + dur.map((s,i) => '<button type="button" data-s="' + s + '" aria-pressed="' + (i===0) + '">' + s + ' segundos</button>').join("") + '</div>'
-    + '<div id="tabla"></div></div>';
-
   $("#p-guiones").innerHTML = html;
-  pintarTabla(d, 28);
+  pintarTablas(d, 28);
   $("#segDur").addEventListener("click", e => {
     const b = e.target.closest("button"); if(!b) return;
     [...$("#segDur").children].forEach(x => x.setAttribute("aria-pressed", x === b));
-    pintarTabla(d, +b.dataset.s);
+    pintarTablas(d, +b.dataset.s);
   });
 }
 
-function pintarTabla(d, segs){
-  const b = bloquesGuion(d, segs);
-  const fin = b[b.length-1].fin;
-  $("#tabla").innerHTML = '<div class="scrollx"><table><thead><tr><th>Tiempo</th><th>Toma</th><th>Cámara</th><th>Qué pasa</th></tr></thead><tbody>'
-    + b.map(x => '<tr><td class="t">' + fmt(x.ini) + ' – ' + fmt(x.fin) + '</td><td class="sh">' + esc(x.toma) + '</td><td>' + esc(x.camara) + '</td><td>' + esc(x.texto) + '</td></tr>').join("")
-    + '</tbody></table></div>'
-    + '<div class="note">Total ' + fin + ' segundos. Rótulo fijo de principio a fin y subtítulos quemados en todo lo que hable: la mayoría del feed se ve en silencio.</div>';
+function pintarTablas(d, segs){
+  GUIONES.forEach(g => {
+    const cont = document.querySelector('.tabla[data-g="' + g.id + '"]');
+    if(!cont) return;
+    const b = plan(g, d, segs);
+    cont.innerHTML = '<div class="scrollx"><table><thead><tr><th>Tiempo</th><th>Toma</th><th>Cámara</th><th>Qué dice</th></tr></thead><tbody>'
+      + b.map(x => '<tr><td class="t">' + fmt(x.ini) + ' – ' + fmt(x.fin) + '</td><td class="sh">' + esc(x.visual)
+        + '</td><td>' + esc(x.camara) + '</td><td>' + (x.dice ? esc(x.dice) : '<span style="color:var(--muted)">sin voz</span>') + '</td></tr>').join("")
+      + '</tbody></table></div>';
+  });
 }
 const fmt = s => "0:" + String(Math.floor(s)).padStart(2,"0");
-
-function guionTexto(d, h){
-  const L = [];
-  L.push("[Macro del vehículo, sin voz]");
-  L.push("");
-  L.push(h.linea(d));
-  L.push("");
-  if(d.combo) L.push("Ya sabes: esto es dos por uno, el que se los lleva se lleva los dos.");
-  L.push("Juega el " + d.fecha + " con las " + d.cif + " últimas de " + d.lot + ". Son solo " + d.cif + " cifras, y entre más números tengas, más opciones tienes.");
-  L.push("");
-  L.push("¿Que por dónde pagas? Nequi, Bancolombia, Daviplata o Bre-B. Me escribes acá abajo por WhatsApp y te paso los números que quedan.");
-  L.push("");
-  L.push("Y yo mismo te " + (d.combo ? "los llevo" : "la llevo") + " hasta la puerta de tu casa, todo pago y " + (d.combo ? "matriculados" : "matriculada") + ".");
-  L.push("");
-  L.push("Recuerda: " + d.firma + ". Escríbeme ya, que se están acabando.");
-  return L.join("\n");
-}
 
 /* ============ COPYS ============ */
 function copys(d){
